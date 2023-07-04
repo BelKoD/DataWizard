@@ -1,0 +1,21 @@
+{
+  "name": "BelKoD/DataWizard",
+  "description": "Небольшие классы-помощники.",
+  "minimum-stability": "dev",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "BelKoD",
+      "email": "developer@belkod.ru"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "BelKoD\\DataWizard\\": "src/"
+    }
+  }
+}
