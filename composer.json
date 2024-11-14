@@ -1,21 +1,34 @@
 {
-  "name": "BelKoD/DataWizard",
-  "description": "Небольшие классы-помощники.",
+  "name": "belkod/datawizard",
+  "description": "Небольшие классы-помощники для преобразования чисел или временных данных в строчное представление.",
   "minimum-stability": "dev",
   "license": "GPL-3.0-or-later",
   "authors": [
     {
       "name": "BelKoD",
-      "email": "developer@belkod.ru"
+      "email": "developer@belkod.ru",
+      "homepage": "https://belkod.ru"
     }
   ],
   "require": {
     "php": ">=7.0",
     "ext-mbstring": "*"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5",
+	  "ext-intl": "*"
+  },
   "autoload": {
     "psr-4": {
       "BelKoD\\DataWizard\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "BelKoD\\tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
   }
 }

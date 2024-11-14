@@ -1,9 +1,40 @@
 <?php
-
 namespace BelKoD\DataWizard;
+
+use BelKoD\DataWizard\locale\ru\DateLocale;
 
 abstract class DateWizard
 {
+	private static $months = [
+		DateLocale::DATEWIZARD_MONTH1,
+		DateLocale::DATEWIZARD_MONTH2,
+		DateLocale::DATEWIZARD_MONTH3,
+		DateLocale::DATEWIZARD_MONTH4,
+		DateLocale::DATEWIZARD_MONTH5,
+		DateLocale::DATEWIZARD_MONTH6,
+		DateLocale::DATEWIZARD_MONTH7,
+		DateLocale::DATEWIZARD_MONTH8,
+		DateLocale::DATEWIZARD_MONTH9,
+		DateLocale::DATEWIZARD_MONTH10,
+		DateLocale::DATEWIZARD_MONTH11,
+		DateLocale::DATEWIZARD_MONTH12
+	];
+
+	/**
+	 * Данный метод не используется и в будущих версиях может быть удалён. Используйте time_to_str.
+	 * @see DateWizard::str()
+	 * @param   int     $timestamp
+	 * @param   string  $format
+	 * @param   int     $case
+	 * @param   bool    $upper
+	 * @deprecated use DateWizard::str()
+	 *
+	 * @return string
+	 */
+	public static function rdate(int $timestamp, string $format = 'd F Yг.', int $case = 0, bool $upper = true): string
+	{
+		return self::str($timestamp, $format, $case, $upper);
+	}
     /**
      * Преобразует временную метку в строку с заданным шаблоном.
      *
@@ -13,28 +44,13 @@ abstract class DateWizard
      * @param bool $upper       True - название месяца с прописной буквы (Июнь), False - со строчной буквы (июнь)
      * @return string
      */
-    public static function rdate(int $timestamp, string $format = 'd F Yг.', int $case = 0, bool $upper = true): string
+    public static function str(int $timestamp, string $format = DateLocale::DATEWIZARD_TIMETOSTR_FORMAT, int $case = 0, bool $upper = true): string
     {
-        if($timestamp == 0)
+        if($timestamp <= 0)
             return '';
 
-        static $months = [
-            'Январ,ь,я,е,ю,ём,е',
-            'Феврал,ь,я,е,ю,ём,е',
-            'Март, ,а,е,у,ом,е',
-            'Апрел,ь,я,е,ю,ем,е',
-            'Ма,й,я,е,ю,ем,е',
-            'Июн,ь,я,е,ю,ем,е',
-            'Июл,ь,я,е,ю,ем,е',
-            'Август, ,а,е,у,ом,е',
-            'Сентябр,ь,я,е,ю,ём,е',
-            'Октябр,ь,я,е,ю,ём,е',
-            'Ноябр,ь,я,е,ю,ём,е',
-            'Декабр,ь,я,е,ю,ём,е'
-        ];
-
         $loc = [];
-        foreach ($months as $monthLocale) {
+        foreach (self::$months as $monthLocale) {
             $cases = explode(',', $monthLocale);
             $base = array_shift($cases);
             $cases = array_map('trim', $cases);
@@ -57,51 +73,74 @@ abstract class DateWizard
         return date($format, $timestamp);
     }
 
+
     /**
-     * Показывает сколько прошло времени от заданного значения $timestamp.
-     *
-     * Если прошло 0...55 минут: X минут назад,
-     * Если сегодня: сегодня в 17:40,
-     * Если вчера: вчера в 17:40,
-     * Если этот год: 21 Апреля в 17:40,
-     * Если прошлый и менее год: 17:40 21.04.2014
+     * Преобразует временную метку в строку, где день, месяц и год представлены в римской записи.
      *
      * @param int $timestamp    Временная метка
-     * @uses plural()
-     * @uses rdate()
-     * @return string
+     * @param string $template  Шаблон, по которому формируется строка (по умолчанию '%1$s/%2$s/%3$s', что соответствует формату "день/месяц/год")
+     *
+     * @return string           Возвращает строку, где день, месяц и год представлены в римской записи, разделенные символами, указанными в шаблоне.
+     *
+     * @example echo DateWizard::rome(1643723400, '%1$s-%2$s-%3$s'); // выведет "I-II-MMXXIII"
+     * @uses NumericWizard::rome()
      */
-    public static function passed_time(int $timestamp): string
+	public static function rome(int $timestamp, string $template = '%1$s/%2$s/%3$s'): string
+	{
+		if($timestamp <= 0)
+			return '';
+		if(empty($template))
+			$template = '%1$s/%2$s/%3$s';
+
+		$year = NumericWizard::rome(date('Y', $timestamp));
+		$month = NumericWizard::rome(date('m', $timestamp));
+		$day = NumericWizard::rome(date('d', $timestamp));
+		return sprintf($template, $day, $month, $year);
+	}
+
+	/**
+	 * Показывает сколько прошло времени от заданного значения $timestamp.
+	 *
+	 * Если прошло 0...59 минут: X минут назад,
+	 * Если сегодня: сегодня в 17:40,
+	 * Если вчера: вчера в 17:40,
+	 * Если завтра: завтра в 17:40,
+	 * Если этот год: 21 Апреля в 17:40,
+	 * В остальных случаях: 17:40 21.04.2014
+	 *
+	 * @param   int     $timestamp    Временная метка
+	 * @param   string  $time_format  Шаблон, по которому формируется время (по умолчанию 'H:i')
+	 * @param   string  $date_format  Шаблон, по которому формируется дата (по умолчанию '%1$s %2$s.%3$s.%4$s')
+	 *                                Первый параметр это время, второй - день, третий - месяц, четвертый - год.
+	 *
+	 * @return string
+	 * @uses NumericWizard::plural()
+	 * @uses DateWizard::str()
+	 */
+    public static function passed(int $timestamp, string $time_format = 'H:i', string $date_format = DateLocale::DATEWIZARD_PASSEDTIME_DATEFORMAT): string
     {
+	    if($timestamp <= 0)
+		    return '';
+
         $time = time();
-        $tm = date('H:i:s', $timestamp);
+        $tm = date($time_format, $timestamp);
         $d = date('d', $timestamp);
         $m = date('m', $timestamp);
         $y = date('Y', $timestamp);
         $last = round(($time - $timestamp)/60);
-        if( $last < 55 ) return $last.' '.self::plural($last, 'минута', 'минуты', 'минут').' назад';
-        elseif($d.$m.$y == date('dmY',$time)) return "сегодня в $tm";
-        elseif($d.$m.$y == date('dmY', strtotime('-1 day'))) return "вчера в $tm";
-        elseif($y == date('Y',$time)) return self::rdate($timestamp, 'd F', 1, true).' в '.$tm;
-        else return $tm.' '.$d.'.'.$m.'.'.$y;
-    }
 
-    /**
-     * Возвращает склонение числа.
-     *
-     * @param int       $source Число, на основе которого строится описание.
-     * @param string    $form1 Описание в единственном числе, например: 1 работа.
-     * @param string    $form2 Описание во множественном числе, например: 2 работы.
-     * @param string    $form3 Описание во множественном числе, например: 5 работ.
-     * @return string
-     */
-    protected static function plural(int $source, string $form1, string $form2, string $form3): string
-    {
-        $n = abs($source) % 100;
-        $n1 = $n % 10;
-        if ($n > 10 && $n < 20) return $form3;
-        if ($n1 > 1 && $n1 < 5) return $form2;
-        if ($n1 == 1) return $form1;
-        return $form3;
+        if( $last > 0 && $last < 59 )
+			return NumericWizard::morph($last,
+	        DateLocale::DATEWIZARD_MINUTES[0], DateLocale::DATEWIZARD_MINUTES[1], DateLocale::DATEWIZARD_MINUTES[2],
+	        DateLocale::DATEWIZARD_PASSEDTIME_LAST);
+        elseif($d.$m.$y == date('dmY',$time))
+	        return sprintf(DateLocale::DATEWIZARD_PASSEDTIME_TODAY, $tm);
+        elseif($d.$m.$y == date('dmY', strtotime('-1 day')))
+	        return sprintf(DateLocale::DATEWIZARD_PASSEDTIME_YESTERDAY, $tm);
+        elseif($d.$m.$y == date('dmY', strtotime('+1 day')))
+	        return sprintf(DateLocale::DATEWIZARD_PASSEDTIME_TOMORROW, $tm);
+        elseif($y == date('Y',$time))
+	        return self::str($timestamp, DateLocale::DATEWIZARD_PASSEDTIME_INYEAR, 1, true);
+        else return sprintf($date_format, $tm, $d, $m, $y);
     }
 }
