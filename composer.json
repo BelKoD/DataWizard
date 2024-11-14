@@ -1,13 +1,14 @@
 {
   "name": "belkod/datawizard",
   "description": "Небольшие классы-помощники для преобразования чисел или временных данных в строчное представление.",
-  "minimum-stability": "stable",
-  "license": "GPL-3.0-or-later",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "license": "MIT",
   "authors": [
     {
       "name": "BelKoD",
       "email": "developer@belkod.ru",
-      "homepage": "https://belkod.ru"
+      "homepage": "https://github.com/BelKoD/DataWizard"
     }
   ],
   "require": {
